@@ -1,8 +1,25 @@
 config:
-  target: https://localhost:5001
+  target: 'https://localhost:62985'
+  processor: './functions.js'
+  phases:
+    - duration: 10
+      arrivalRate: 100
 scenarios:
-  - flow:
-    - get: 
-      url: '/'
-    - get:
-      url: '/Home/Privacy'
+  - name: 'Create a user'
+    flow:
+      - function: createEmail
+      - get:
+          url: '/Identity/Account/Register'
+          capture:
+            - selector: '[name=__RequestVerificationToken]'
+              attr: 'value'
+              as: 'requestToken'
+      - log: 'Got {{requestToken}}'
+      - post: 
+          url: '/Identity/Account/Register'
+          form:
+            'Input.Email': '{{email}}'
+            'Input.Password': '{{password}}'
+            'Input.ConfirmPassword': '{{password}}'
+            '__RequestVerificationToken': '{{requestToken}}'
+      - log: 'Crated a user with {{email}} and {{password}}'
